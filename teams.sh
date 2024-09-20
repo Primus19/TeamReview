@@ -48,9 +48,13 @@ def lambda_handler(event, context):
         # Remove duplicates from the entire dataframe
         df = df.drop_duplicates()
 
+        # Ensure the engine_version column is sorted correctly
+        df['engine_version'] = df['engine_version'].apply(lambda x: tuple(map(int, x.split('.'))))  # Convert versions to tuples for comparison
+        df = df.sort_values(by='engine_version', ascending=True)  # Sort by engine version in ascending order
+
         # Separate reports and include additional columns
         rds_instance_status_details = df[['db_instance_identifier', 'db_name', 'engine', 'db_age_days', 'engine_version']]
-        
+
         # Save CSV to S3
         save_csv_to_s3(rds_instance_status_details, 'output/status_rds_instances/rds_instance_status_details.csv')
 
@@ -101,11 +105,6 @@ def get_current_page_version(page_id):
     }
     response = requests.get(url, headers=headers)
 
-    print(f"Request URL: {url}")
-    print(f"Request Headers: {headers}")
-    print(f"Response Status Code: {response.status_code}")
-    print(f"Response Body: {response.text}")
-
     if response.status_code == 200:
         page_data = response.json()
         version = page_data['version']['number']
@@ -133,15 +132,8 @@ def push_to_confluence(content, current_version):
         'body': {'storage': {'value': content, 'representation': 'storage'}}
     }
 
-    print(f"Request URL: {url}")
-    print(f"Request Headers: {headers}")
-    print(f"Request Data: {json.dumps(data, indent=2)}")
-    
     try:
         response = requests.put(url, headers=headers, data=json.dumps(data))
-        print(f"Response Status Code: {response.status_code}")
-        print(f"Response Body: {response.text}")
-
         if response.status_code == 200:
             print("Successfully updated Confluence page.")
         else:
@@ -182,12 +174,4 @@ def format_rds_report(df):
         html_content += f'<td style="border:1px solid #ddd; padding:12px; text-align:left;">{row["db_name"] if pd.notna(row["db_name"]) else ""}</td>'
         html_content += f'<td style="border:1px solid #ddd; padding:12px; text-align:left;">{row["engine"] if pd.notna(row["engine"]) else ""}</td>'
         html_content += f'<td style="border:1px solid #ddd; padding:12px; text-align:left;">{row["db_age_days"] if pd.notna(row["db_age_days"]) else ""}</td>'
-        html_content += f'<td style="border:1px solid #ddd; padding:12px; text-align:left;">{row["engine_version"] if pd.notna(row["engine_version"]) else ""}</td>'
-        html_content += '</tr>'
-
-    html_content += '''
-        </tbody>
-    </table>
-    '''
-    return html_content
-
+        html_content += f'<td style="border:1px solid #ddd; padding:12px; text-align:left;">{".".join &#8203;:contentReference[oaicite:0]{index=0}&#8203;
